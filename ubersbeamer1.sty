@@ -1,0 +1,426 @@
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{ubersbeamer1}[2023/08/10 Pol]
+\RequirePackage{kvoptions}
+
+\SetupKeyvalOptions{
+    family=KVCSC,
+    prefix=KVCSC@
+}
+
+\DeclareBoolOption{darktherm}
+\DeclareBoolOption{nologo}
+\DeclareBoolOption{useprogressbar}
+% \DeclareBoolOption{inclassmode}
+% \DeclareBoolOption{fullclassmode}
+\DeclareStringOption[all]{classmode}[inclass]
+\ProcessKeyvalOptions*
+
+\providecommand{\CSC}{1} 
+
+
+\RequirePackage{xcolor}
+\definecolor{ubergreen}{RGB}{34, 139, 34} % основной цвет выделения
+\definecolor{uberorange}{RGB}{245, 157, 32} % доп цвет выделения
+\definecolor{uberblue}{RGB}{5,122,186} % доп цвет выделения 
+
+\definecolor{uberdarkback}{RGB}{243,243,243} % фон
+\definecolor{uberlightcolor}{RGB}{206,216,221} % подзаголовок
+\definecolor{uberlightback}{RGB}{236,240,242} % бекграунд
+\definecolor{uberdarkcolor}{RGB}{136,153,164} % подзаголовок
+\setbeamertemplate{section in toc shaded}[default][100]
+\setbeamertemplate{subsection in toc shaded}[default][100]
+
+\ifKVCSC@darktherm\relax
+    \setbeamercolor{background canvas}{bg=uberdarkback}
+    \setbeamercolor{title}{fg=black}
+    \setbeamercolor{frametitle}{fg=black}
+    \setbeamercolor{framesubtitle}{fg=black}
+    \setbeamercolor{normal text}{fg=black}
+    \setbeamercolor{page number}{fg=black}
+    \setbeamercolor{section in toc shaded}{fg=uberdarkback!60!ubergreen}
+    \setbeamercolor{subsection in toc shaded}{fg=uberdarkback!60!white}
+\else
+    \setbeamercolor{background canvas}{bg=uberlightback}
+    \setbeamercolor{title}{fg=black}
+    \setbeamercolor{frametitle}{fg=black}
+    \setbeamercolor{framesubtitle}{fg=uberdarkcolor}
+    \setbeamercolor{normal text}{fg=black}
+    \setbeamercolor{page number}{fg=uberdarkcolor}
+    \setbeamercolor{section in toc shaded}{fg=uberlightback!60!ubergreen}
+    \setbeamercolor{subsection in toc shaded}{fg=uberlightback!60!black}
+\fi
+\setbeamercolor{structure}{fg=ubergreen}
+\setbeamerfont{footnote}{size=\fontsize{10}{12}\selectfont}
+\setbeamerfont{frametitle}{size=\fontsize{15}{12}\selectfont}
+\setbeamercolor{bibliography entry author}{fg=black}
+\newcount\forcewidefootnote
+\forcewidefootnote=0
+
+\newcommand{\logoname}{src/images/png_immit_vert.png}%
+\newcommand{\polytech}{src/images/main.png}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+
+\def\ifnot#1{#1\else\expandafter\expandafter\fi\iffalse\iftrue\fi}
+\def\ifnottitle#1{\ifnot{\ifnum\insertframenumber=1}\relax#1\fi}
+
+% Титульник
+\def\csc@titlefontmodificator{\fontsize{15}{15}\selectfont}
+\setbeamerfont{title}{size=\csc@titlefontmodificator}
+\setbeamerfont{date}{size=\fontsize{8}{8}\selectfont \vspace{-70pt}}
+\setbeamerfont{author}{size=\fontsize{7}{7}\selectfont \raggedleft}
+\newif\ifsupressfootnote
+\newif\ifsupressprogressbar
+
+\newdimen\rule@length
+\rule@length=\paperwidth%
+\ifKVCSC@useprogressbar%
+    \setbeamertemplate{headline}{%
+    \immediate\update@section@counters%
+    \immediate\set@sectionprogress@length%
+        \ifnottitle{%
+        \smash{%
+            \ifnot{\ifsupressprogressbar}%
+                \lower0.1cm\hbox{%
+                    {%
+                        \color{ubergreen}%
+                        \rule{\rule@length}{0.1cm}%
+                    }%
+                }%
+            \fi%
+        }}%
+    }
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% заголовки и подзаголовки %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\csc@insertframetitle{\insertframetitle}%
+\def\csc@insert@frametitle{%
+    \usebeamerfont{frametitle}\strut\csc@insertframetitle%
+    \strut\par%
+}
+\def\csc@insert@framesubtitle{
+    \ifnot{\ifx\insertframesubtitle\@empty}\relax%
+        \usebeamerfont{framesubtitle}\usebeamercolor[fg]{framesubtitle}\insertframesubtitle%
+        \strut\par\vspace{5pt}%
+    \fi%
+}
+\setbeamertemplate{frametitle}{%
+    \vspace{0.5\beamer@leftmargin}%
+    \csc@insert@frametitle%
+    \csc@insert@framesubtitle%
+    \vspace{-10pt}%
+}
+
+
+\newif\iffootnotefullwidth%
+\newcommand{\check@footwidth}[1]{%
+    \setbox\footnote@box=#1\relax%
+    \ifnum \forcewidefootnote=1\relax%
+        \footnotefullwidthtrue% 
+    \else%
+        \ifnum\forcewidefootnote=-1\relax% 
+            \footnotefullwidthfalse%
+        \else%
+            \ifdim\ht\footnote@box>36pt\relax% 
+                \footnotefullwidthtrue% 
+            \else%
+                \footnotefullwidthfalse% 
+            \fi%
+        \fi%
+    \fi%
+}
+
+\newdimen\fromBorderLogo%
+\fromBorderLogo=0.25\beamer@leftmargin%
+\newdimen\fromBottonLogo%
+\fromBottonLogo=5pt%
+
+\def\csc@widefootnote@box{%
+    \raisebox{0em}[0pt][0pt]{
+        \hbox{
+            \parbox[b]{\dimexpr\paperwidth-30pt}{%
+                \usebeamerfont{footnote}% 
+                \ifnot{\ifsupressfootnote}%
+                    \csc@footnote%
+                \fi%
+            }%
+        }% 
+    }%
+}
+\def\csc@logo@box{% бокс для логотипа
+    \ifnot{\ifKVCSC@nologo}%
+        \raisebox{0pt}[0pt][0pt]{%
+            \makebox[0pt]{%
+                \hspace{1.0cm}\hspace{2\fromBorderLogo}%
+                \includegraphics[width=1.0cm]{\logoname}%
+                
+            }%
+        }%
+    \fi%
+}
+\def\csc@left@box{%
+    \ifnot{\ifKVCSC@nologo}%
+        \raisebox{2.83cm}[0pt][0pt]{%
+            \makebox[0pt]{%
+                \hspace{0.51cm}\hspace{2\fromBorderLogo}%
+                \includegraphics[width=1.0cm]{\polytech}%
+
+            }%
+        }%
+    \fi%
+}
+\def\csc@pagenumbers@box{% бокс для числа страниц
+    \makebox[0pt]{%
+        \makebox[20pt][r]{%
+            \ifnottitle{%
+                \insertframenumber\,/\,\inserttotalframenumber%
+            }%
+        }%
+        \hspace{20pt}\hspace{2\fromBorderLogo}%
+    }% 
+}
+
+\setbeamertemplate{navigation symbols}{}%
+\setbeamertemplate{footline}{%
+    \usebeamercolor[fg]{page number}%
+    \check@footwidth{%
+        \hbox{\parbox[b]{\cscfootnotelen}{%
+            \usebeamerfont{footnote}\raggedright% 
+            \ifnot{\ifsupressfootnote}%
+                \csc@footnote%
+            \fi%
+        }}%
+    }%
+    \iffootnotefullwidth\relax%
+        \hfill%
+        \csc@widefootnote@box
+        \hfill%
+    \else%   
+        \csc@left@box%
+        \csc@logo@box%
+        \hfill% 
+        \raisebox{0em}[0pt][0pt]{\box\footnote@box}%
+        \hfill% 
+        \usebeamerfont{page number}\csc@pagenumbers@box
+        
+    \fi%
+    \vspace{\fromBottonLogo}%
+    \cscfootnote{}%
+}%
+
+
+\def\gnewcommand{\g@star@or@long\new@command}
+\def\grenewcommand{\g@star@or@long\renew@command}
+\def\g@star@or@long#1{% 
+  \@ifstar{\let\l@ngrel@x\global#1}{\def\l@ngrel@x{\long\global}#1}} 
+  
+\newcommand{\csc@footnote}{}
+\newcommand{\cscfootnote}[1]{%
+    \grenewcommand{\csc@footnote}{% 
+        {\fontsize{7}{10}\selectfont#1}% 
+    }%
+}
+\newcount\is@wide@slide
+\ifdim\paperwidth>370pt % <-- 16:9
+    \is@wide@slide=1
+\else                   % <--  4:3
+    \is@wide@slide=0
+\fi
+\newlength{\cscfootnotelen}%
+\ifnum\is@wide@slide=1%
+    \setlength{\cscfootnotelen}{12cm}
+\else
+    \setlength{\cscfootnotelen}{8cm}
+\fi
+\newbox\footnote@box % 
+
+
+\ifKVCSC@useprogressbar
+    \let\old@section=\beamer@section
+    \newwrite\sectionfile@writer
+    \openout\sectionfile@writer=\jobname.secw\relax
+    
+    \long\def\beamer@section[#1]#2{
+        \old@section[#1]{#2}\relax
+        \immediate\write\sectionfile@writer{\insertframenumber}
+    }
+    
+    \newtoks\sections@list%
+    \newread\sectionfile@reader
+    \openin\sectionfile@reader=\jobname.secw\relax
+    
+    \def\readallsections{%
+        \def\stopread{\par }%
+        \loop\relax%
+        \ifnot{\ifeof\sectionfile@reader}\relax%
+        \read\sectionfile@reader to\newline%
+            \ifx\newline\stopread\relax%
+                \def\newline{-1\space}%
+            \fi\relax%
+            \edef\tempa{\the\sections@list\newline}%
+            \sections@list=\expandafter{\tempa}%
+        \repeat\relax%
+    }
+    \readallsections%
+    
+    \newcount\section@start@slide%
+    \newcount\section@end@slide%
+    \section@start@slide=1
+    \section@end@slide=-1
+    
+    \def\spit@head@section#1 #2\relax{%
+        \def\a{#1}%
+        \ifnot{\ifx\a\@empty}%
+            \global\section@end@slide=#1%
+            \ifx\relax#2\relax%
+                \global\sections@list=\expandafter{-1 \space}%
+            \else\relax%
+                \global\sections@list=\expandafter{#2}%
+            \fi\relax%
+            \ifnum\section@end@slide=-1\relax%
+                \global\section@end@slide=\numexpr \inserttotalframenumber + 1\relax%
+            \fi\relax%
+        \fi%
+    }
+    
+    \def\getnext@section@slidenumber{%
+        \edef\tempa{\the\sections@list}%
+        \ifnot{\ifx\tempa\empty}\relax%
+            \expandafter\spit@head@section\tempa\relax%
+        \fi\relax%
+    }
+    
+
+    \def\update@section@counters{%
+        \ifnum\section@end@slide=-1\relax%
+            \ifnum\inserttotalframenumber=1\relax%
+                \global\section@end@slide=1\relax%
+            \else%
+                \global\section@end@slide=\numexpr \inserttotalframenumber + 1\relax%
+            \fi%
+        \fi\relax%
+        \ifnot{\ifnum\insertframenumber<\section@end@slide}\relax%
+            \getnext@section@slidenumber%
+            \global\section@start@slide=\insertframenumber%
+        \fi\relax
+    }
+    \update@section@counters%
+    
+    
+% вычислим длину прогрессбара
+    \def\set@sectionprogress@length{%
+    % длина прогрессбара будет <basic>/(b-a) * (d-1-a)
+        \ifnum\section@start@slide>1\relax%
+            \rule@length=\paperwidth%
+            \newcount\thisposprogressbar%
+            \thisposprogressbar=\numexpr\insertframenumber +1 - \the\section@start@slide\relax%
+            \newcount\thatposprogressbar%
+            \thatposprogressbar=\numexpr\the\section@end@slide - \the\section@start@slide\relax%
+            \ifnot{\ifnum\thatposprogressbar>0}%
+                \global\thatposprogressbar=1%
+            \fi
+            \divide\rule@length by \thatposprogressbar%
+            \multiply\rule@length by \thisposprogressbar%
+        \else%
+            \rule@length=0pt
+        \fi%
+    }
+\else
+    \newwrite\sectionfile@writer
+    \openout\sectionfile@writer=\jobname.secw\relax
+    \closeout\sectionfile@writer
+\fi
+
+\RequirePackage{fontspec}
+\setsansfont[
+    Ligatures=TeX, 
+    Path = src/fonts/, 
+    BoldFont=FiraSans-Bold.ttf,
+    ItalicFont=FiraSans-Italic.ttf,
+    BoldItalicFont=FiraSans-BoldItalic.ttf
+    ]{FiraSans-Regular.ttf}
+\setmonofont[Ligatures=TeX, 
+    Path = src/fonts/
+    ]{FiraMono-Regular.ttf}
+    
+\parskip=4pt plus 2pt minus 4pt\relax
+\let\OLDitemize\itemize
+\renewcommand\itemize{\OLDitemize\addtolength{\itemsep}{0.5pt}}
+    
+
+\providecommand{\highgreen}[1]{{\color{ubergreen}#1}}
+\providecommand{\highblack}[1]{{\color{black}#1}}
+
+\providecommand{\highorange}[1]{{\color{uberorange}#1}}
+\providecommand{\highblue}[1]{{\color{uberblue}#1}}
+\providecommand{\highbackgreen}[1]{\colorbox{ubergreen}{{\color{white}#1}}}
+\providecommand{\ccsc}{\color{ubergreen}}
+
+
+\newif\ifinclassmode
+\newif\ifoutclassmode
+\inclassmodetrue
+\outclassmodetrue
+\def\csc@inclass@check{inclass}
+\def\csc@outclass@check{outclass}
+\def\csc@in@check{in}
+\def\csc@out@check{out}
+
+\ifx\KVCSC@classmode\csc@inclass@check
+    \outclassmodefalse
+    \supressfootnotetrue
+\fi
+\ifx\KVCSC@classmode\csc@outclass@check
+    \inclassmodefalse
+    \supressprogressbartrue
+\fi
+\ifx\KVCSC@classmode\csc@in@check
+    \outclassmodefalse
+\fi
+\ifx\KVCSC@classmode\csc@out@check
+    \inclassmodefalse
+\fi
+
+
+\ifinclassmode
+    \providecommand{\inclass}[1]{#1}
+\else
+    \providecommand{\inclass}[1]{}
+\fi 
+\ifoutclassmode
+    \providecommand{\outclass}[1]{#1}
+\else
+    \providecommand{\outclass}[1]{}
+\fi
+
+\def\strut@depth{\dp\strutbox}%
+\def\csc@marginalsymbol#1{%
+    \strut\vadjust{%
+        \kern-\strut@depth%
+        \vtop to \strut@depth{%
+            \baselineskip\strut@depth%
+            \vss\llap{%
+                #1\hspace{15pt}%
+            }\null%
+        }%
+    }%
+}
+
+\long\def\csc@high#1#2#3{%
+    #1{%
+        \csc@marginalsymbol{#2{---\llap{>}}\hspace{-4pt}}%
+        #3%
+        \csc@marginalsymbol{#2{\rlap{<}---}}%
+    }%
+}
+\long\def\csc@classframe#1#2#3{%
+    #1{{%
+    \def\csc@insertframetitle{\csc@marginalsymbol{#2{|\hspace{-3pt}|}}\insertframetitle}%
+    #3%
+    }}%
+}
+\providecommand\inclasshigh[1]{\csc@high{\inclass}{\highorange}{#1}}
+\providecommand\outclasshigh[1]{\csc@high{\outclass}{\highblue}{#1}}
+\providecommand\inclassframe[1]{\csc@classframe{\inclass}{\highorange}{#1}}
+\providecommand\outclassframe[1]{\csc@classframe{\outclass}{\highblue}{#1}}
+\providecommand\inpause{\inclass{\pause}}
